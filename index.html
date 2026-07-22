@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roll Call — Attendance Register</title>
+<link rel="icon" type="image/png" href="Glass_Symbol_polfar.png">
+<style>
+  
+  :root{
+    --bg:            #0B0D10;
+    --surface:       #14171B;
+    --surface-raised:#1B1F24;
+    --border:        #272C32;
+    --border-soft:   #1F2328;
+    --text:          #F1F2F4;
+    --text-muted:    #8A919C;
+    --text-faint:    #5B626C;
+    --accent:        #FF7A29;
+    --accent-dim:    #4A2E1A;
+    --accent-glow:   rgba(255,122,41,0.16);
+    --good:          #34D399;
+    --good-dim:      #123326;
+    --bad:           #F2545B;
+    --bad-dim:       #3A1418;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  @font-face{
+    font-family:'Space Grotesk'; src: local('Space Grotesk');
+  }
+
+  html[data-theme="light"]{
+    --bg:            #F4F5F7;
+    --surface:       #FFFFFF;
+    --surface-raised:#FFFFFF;
+    --border:        #E1E4E9;
+    --border-soft:   #EAEDF1;
+    --text:          #14171B;
+    --text-muted:    #5B626C;
+    --text-faint:    #8A919C;
+    --accent:        #FF7A29;
+    --accent-dim:    #FFE7D6;
+    --accent-glow:   rgba(255,122,41,0.10);
+    --good:          #0E9A6C;
+    --good-dim:      #E1F7EE;
+    --bad:           #D6323C;
+    --bad-dim:       #FBE7E9;
+  }
+
+  html[data-theme="light"] body{
+    background-image:
+      radial-gradient(circle at 12% -10%, var(--accent-glow), transparent 45%),
+      radial-gradient(circle at 100% 0%, rgba(14,154,108,0.05), transparent 40%);
+  }
+
+  html[data-theme="light"] .stat-card,
+  html[data-theme="light"] .panel{
+    box-shadow:0 1px 2px rgba(20,23,27,0.04);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ transition:background 0.2s ease; }
+  body, .surface-transition, .stat-card, .panel, input, select, .toast,
+  .brand-mark, .status-pill, .icon-btn, .btn-ghost, .btn-danger-ghost{
+    transition-property:background-color, border-color, color, box-shadow, transform, stroke-dashoffset, opacity;
+    transition-duration:0.18s;
+    transition-timing-function:ease;
+  }
+
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+
+  body{
+    background-image:
+      radial-gradient(circle at 12% -10%, var(--accent-glow), transparent 45%),
+      radial-gradient(circle at 100% 0%, rgba(52,211,153,0.06), transparent 40%);
+    padding-bottom:80px;
+  }
+
+  a{ color:inherit; }
+
+  ::selection{ background:var(--accent); color:#1a0e05; }
+
+  button:focus-visible, input:focus-visible, select:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:36px 24px 0;
+  }
+
+  header.topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:32px;
+    flex-wrap:wrap;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  .brand-mark{
+    width:38px; height:38px;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:16px;
+    color:var(--text);
+    flex-shrink:0;
+    overflow:hidden;
+  }
+
+  .brand-mark img{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .brand h1{
+    font-family:var(--font-display);
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+
+  .brand p{
+    font-size:12px;
+    color:var(--text-muted);
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+
+  .topbar-actions{
+    display:flex;
+    gap:8px;
+  }
+
+  .dashboard{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr 0.9fr 1.3fr;
+    gap:14px;
+    margin-bottom:28px;
+  }
+
+  @media(max-width:820px){
+    .dashboard{ grid-template-columns: 1fr 1fr; }
+  }
+
+  .stat-card{
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg);
+    padding:20px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .stat-card .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--text-muted);
+    margin-bottom:10px;
+    font-weight:600;
+  }
+
+  .stat-card .value{
+    font-family:var(--font-display);
+    font-size:34px;
+    font-weight:700;
+    line-height:1;
+  }
+
+  .stat-card.registered .value{ color:var(--text); }
+  .stat-card.present .value{ color:var(--good); }
+  .stat-card.absent .value{ color:var(--bad); }
+
+  .ring-card{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+
+  .ring-wrap{ position:relative; width:76px; height:76px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-wrap .ring-pct{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:700;
+  }
+
+  .ring-track{ fill:none; stroke:var(--border); stroke-width:8; }
+  .ring-fill{
+    fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round;
+    transition:stroke-dashoffset 0.5s ease;
+  }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    margin-bottom:20px;
+  }
+
+  .panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+
+  .panel-head h2{
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:700;
+  }
+
+  .panel-head .hint{
+    font-size:12px;
+    color:var(--text-faint);
+  }
+
+  #add-form{
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap:10px;
+  }
+
+  @media(max-width:640px){
+    #add-form{ grid-template-columns: 1fr; }
+  }
+
+  .field label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-muted);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+
+  input[type="text"], select{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:var(--radius-sm);
+    padding:11px 12px;
+    font-size:14px;
+    font-family:var(--font-body);
+    transition:border-color 0.15s ease;
+  }
+
+  input[type="text"]::placeholder{ color:var(--text-faint); }
+
+  input[type="text"]:focus, select:focus{
+    border-color:var(--accent);
+  }
+
+  input.error{ border-color:var(--bad); }
+
+  .field{ display:flex; flex-direction:column; justify-content:flex-end; }
+
+  button{
+    cursor:pointer;
+    font-family:var(--font-body);
+    font-weight:600;
+    border:none;
+    border-radius:var(--radius-sm);
+    transition:transform 0.1s ease, background 0.15s ease, opacity 0.15s ease;
+  }
+
+  button:active{ transform:scale(0.97); }
+
+  .btn-primary{
+    background:var(--accent);
+    color:#1a0e05;
+    padding:11px 18px;
+    font-size:14px;
+    white-space:nowrap;
+  }
+  .btn-primary:hover{ background:#FF8C47; }
+
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    padding:9px 14px;
+    font-size:13px;
+  }
+  .btn-ghost:hover{ color:var(--text); border-color:var(--text-faint); }
+
+  .btn-danger-ghost{
+    background:transparent;
+    border:1px solid var(--bad-dim);
+    color:var(--bad);
+    padding:9px 14px;
+    font-size:13px;
+  }
+  .btn-danger-ghost:hover{ background:var(--bad-dim); }
+
+  .field-error{
+    font-size:11.5px;
+    color:var(--bad);
+    margin-top:6px;
+    min-height:14px;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+
+  .toolbar input[type="text"]{ flex:1; min-width:180px; }
+  .toolbar select{ width:auto; min-width:150px; }
+
+  .table-wrap{ overflow-x:auto; }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+  }
+
+  thead th{
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-faint);
+    font-weight:600;
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+
+  tbody td{
+    padding:12px 10px;
+    border-bottom:1px solid var(--border-soft);
+    vertical-align:middle;
+  }
+
+  tbody tr:hover{ background:rgba(255,255,255,0.015); }
+
+  .who .name{ font-weight:600; }
+  .who .num{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--text-muted);
+  }
+
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11.5px;
+    font-weight:600;
+    padding:5px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .status-pill .dot{ width:6px; height:6px; border-radius:50%; }
+
+  .status-pill.present{ background:var(--good-dim); color:var(--good); }
+  .status-pill.present .dot{ background:var(--good); box-shadow:0 0 0 3px rgba(52,211,153,0.18); }
+
+  .status-pill.absent{ background:var(--bad-dim); color:var(--bad); }
+  .status-pill.absent .dot{ background:var(--bad); }
+
+  .time-cell{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--text-faint);
+  }
+
+  .row-actions{
+    display:flex;
+    gap:6px;
+    justify-content:flex-end;
+    white-space:nowrap;
+  }
+
+  .icon-btn{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    width:30px; height:30px;
+    border-radius:var(--radius-sm);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:13px;
+  }
+  .icon-btn:hover{ color:var(--text); border-color:var(--text-faint); }
+  .icon-btn.danger:hover{ color:var(--bad); border-color:var(--bad-dim); background:var(--bad-dim); }
+
+  .toggle-btn{
+    padding:7px 14px;
+    font-size:12.5px;
+    border-radius:var(--radius-sm);
+  }
+  .toggle-btn.to-present{ background:var(--good-dim); color:var(--good); border:1px solid transparent; }
+  .toggle-btn.to-present:hover{ background:var(--good); color:#052015; }
+  .toggle-btn.to-absent{ background:var(--bad-dim); color:var(--bad); border:1px solid transparent; }
+  .toggle-btn.to-absent:hover{ background:var(--bad); color:#2a0206; }
+
+  .empty-state{
+    text-align:center;
+    padding:48px 20px;
+    color:var(--text-faint);
+  }
+  .empty-state .big{
+    font-family:var(--font-display);
+    font-size:16px;
+    color:var(--text-muted);
+    margin-bottom:6px;
+  }
+
+  tbody input[type="text"].edit-input{
+    padding:6px 8px;
+    font-size:13px;
+  }
+
+  footer.appfoot{
+    max-width:1080px;
+    margin:8px auto 0;
+    padding:0 24px;
+    display:flex;
+    justify-content:space-between;
+    color:var(--text-faint);
+    font-size:11.5px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  #toast-region{
+    position:fixed;
+    bottom:20px; right:20px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    z-index:100;
+  }
+
+  .toast{
+    background:var(--surface-raised);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    color:var(--text);
+    padding:12px 16px;
+    border-radius:var(--radius-sm);
+    font-size:13px;
+    max-width:280px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    animation: toast-in 0.2s ease;
+  }
+  .toast.error{ border-left-color:var(--bad); }
+  .toast.success{ border-left-color:var(--good); }
+
+  @keyframes toast-in{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(6,7,9,0.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:20px;
+    opacity:0;
+    transition:opacity 0.18s ease;
+  }
+  .modal-overlay.open{ opacity:1; }
+  .modal-overlay[hidden]{ display:none; }
+
+  .modal-box{
+    background:var(--surface-raised);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:28px;
+    width:100%;
+    max-width:360px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    transform:translateY(8px) scale(0.98);
+    transition:transform 0.18s ease;
+  }
+  .modal-overlay.open .modal-box{ transform:translateY(0) scale(1); }
+
+  .modal-icon{
+    width:48px; height:48px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px;
+    font-size:22px;
+    font-weight:700;
+  }
+  .modal-icon.warn{ background:var(--bad-dim); color:var(--bad); }
+  .modal-icon.success{ background:var(--good-dim); color:var(--good); }
+
+  .modal-box h3{
+    font-family:var(--font-display);
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+
+  .modal-text{
+    font-size:13px;
+    color:var(--text-muted);
+    line-height:1.5;
+    margin-bottom:20px;
+  }
+
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+  }
+  .modal-actions button{ flex:1; padding:10px 16px; }
+
+  .btn-danger{
+    background:var(--bad);
+    color:#fff;
+    padding:10px 16px;
+    font-size:14px;
+  }
+  .btn-danger:hover{ opacity:0.9; }
+
+  .spinner{
+    width:40px; height:40px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    border:3px solid var(--border);
+    border-top-color:var(--accent);
+    animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .check-draw{
+    stroke-dasharray:26;
+    stroke-dashoffset:26;
+    animation:draw-check 0.35s ease 0.05s forwards;
+  }
+  @keyframes draw-check{ to{ stroke-dashoffset:0; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      
+      <div class="brand-mark"><img src="Glass_Symbol_polfar.png" alt="Your logo"></div>
+      <div>
+        <h1>Roll Call</h1>
+        <p>GUILD SA · Buildathon 01 Attendance Register</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-ghost" id="theme-toggle" type="button" aria-label="Toggle light or dark mode">🌙 Dark</button>
+      <button class="btn-ghost" id="export-btn" type="button">Export CSV</button>
+      <button class="btn-danger-ghost" id="reset-btn" type="button">Reset all data</button>
+    </div>
+  </header>
+
+  <section class="dashboard" aria-label="Attendance statistics">
+    <div class="stat-card registered">
+      <div class="label">Registered</div>
+      <div class="value" id="stat-registered">0</div>
+    </div>
+    <div class="stat-card present">
+      <div class="label">Present</div>
+      <div class="value" id="stat-present">0</div>
+    </div>
+    <div class="stat-card absent">
+      <div class="label">Not checked in</div>
+      <div class="value" id="stat-absent">0</div>
+    </div>
+    <div class="stat-card ring-card">
+      <div class="ring-wrap">
+        <svg width="76" height="76" viewBox="0 0 76 76">
+          <circle class="ring-track" cx="38" cy="38" r="32"></circle>
+          <circle class="ring-fill" id="ring-fill" cx="38" cy="38" r="32"
+                   stroke-dasharray="201.06" stroke-dashoffset="201.06"></circle>
+        </svg>
+        <div class="ring-pct" id="ring-pct">0%</div>
+      </div>
+      <div>
+        <div class="label">Attendance rate</div>
+        <div style="font-size:12px;color:var(--text-faint);">of registered attendees</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Add attendee</h2>
+      <span class="hint">Student number must be unique</span>
+    </div>
+    <form id="add-form" novalidate>
+      <div class="field">
+        <label for="input-name">Full name</label>
+        <input type="text" id="input-name" placeholder="e.g. Lerato Mokoena" autocomplete="off">
+        <div class="field-error" id="err-name"></div>
+      </div>
+      <div class="field">
+        <label for="input-number">Student number</label>
+        <input type="text" id="input-number" placeholder="e.g. EDV2026101" autocomplete="off">
+        <div class="field-error" id="err-number"></div>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn-primary">+ Add attendee</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Attendee register</h2>
+      <span class="hint" id="results-count"></span>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="search-input" placeholder="Search by name or student number...">
+      <select id="filter-select">
+        <option value="all">All attendees</option>
+        <option value="present">Present only</option>
+        <option value="absent">Not checked in</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Attendee</th>
+            <th>Status</th>
+            <th>Checked in at</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <div class="big">No attendees to show</div>
+        <div>Add someone above, or adjust your search and filters.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="appfoot">
+  <span>Roll Call · Single-file build, no backend required</span>
+  <span>Data is stored in this browser only</span>
+</footer>
+
+<div class="modal-overlay" id="reset-modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title" id="reset-modal-box">
+  </div>
+</div>
+
+<div id="toast-region" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "guildsa_rollcall_v1";
+  var state = {
+    attendees: [],
+    search: "",
+    filter: "all"
+  };
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed.attendees)){
+          state.attendees = parsed.attendees;
+        }
+      }
+    }catch(e){
+      console.warn("Could not read saved attendance data:", e);
+    }
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ attendees: state.attendees }));
+    }catch(e){
+      showToast("Could not save data (storage may be full or disabled).", "error");
+    }
+  }
+
+  function makeId(){
+    return "a_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+  }
+
+  var el = {
+    form: document.getElementById("add-form"),
+    inputName: document.getElementById("input-name"),
+    inputNumber: document.getElementById("input-number"),
+    errName: document.getElementById("err-name"),
+    errNumber: document.getElementById("err-number"),
+    search: document.getElementById("search-input"),
+    filter: document.getElementById("filter-select"),
+    tbody: document.getElementById("table-body"),
+    empty: document.getElementById("empty-state"),
+    resultsCount: document.getElementById("results-count"),
+    statRegistered: document.getElementById("stat-registered"),
+    statPresent: document.getElementById("stat-present"),
+    statAbsent: document.getElementById("stat-absent"),
+    ringFill: document.getElementById("ring-fill"),
+    ringPct: document.getElementById("ring-pct"),
+    exportBtn: document.getElementById("export-btn"),
+    resetBtn: document.getElementById("reset-btn"),
+    toastRegion: document.getElementById("toast-region"),
+    resetModal: document.getElementById("reset-modal"),
+    resetModalBox: document.getElementById("reset-modal-box"),
+    themeToggle: document.getElementById("theme-toggle")
+  };
+
+  var RING_CIRCUMFERENCE = 2 * Math.PI * 32;
+
+  var THEME_KEY = "guildsa_rollcall_theme";
+
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    el.themeToggle.textContent = theme === "light" ? "☀️ Light" : "🌙 Dark";
+    try{ localStorage.setItem(THEME_KEY, theme); }catch(e){  }
+  }
+
+  function loadTheme(){
+    var saved = null;
+    try{ saved = localStorage.getItem(THEME_KEY); }catch(e){  }
+    applyTheme(saved === "light" ? "light" : "dark");
+  }
+
+  el.themeToggle.addEventListener("click", function(){
+    var current = document.documentElement.getAttribute("data-theme");
+    applyTheme(current === "light" ? "dark" : "light");
+  });
+
+  function showToast(message, type){
+    var t = document.createElement("div");
+    t.className = "toast" + (type ? " " + type : "");
+    t.textContent = message;
+    el.toastRegion.appendChild(t);
+    setTimeout(function(){
+      t.style.opacity = "0";
+      setTimeout(function(){ t.remove(); }, 200);
+    }, 2800);
+  }
+
+  function normalizeNumber(str){
+    return str.trim().toUpperCase();
+  }
+
+  function findDuplicate(studentNumber, excludeId){
+    var norm = normalizeNumber(studentNumber);
+    for(var i = 0; i < state.attendees.length; i++){
+      var a = state.attendees[i];
+      if(a.id !== excludeId && normalizeNumber(a.studentNumber) === norm){
+        return a;
+      }
+    }
+    return null;
+  }
+
+  function clearFieldErrors(){
+    el.errName.textContent = "";
+    el.errNumber.textContent = "";
+    el.inputName.classList.remove("error");
+    el.inputNumber.classList.remove("error");
+  }
+
+  function addAttendee(name, studentNumber){
+    name = name.trim();
+    studentNumber = studentNumber.trim();
+
+    clearFieldErrors();
+    var hasError = false;
+
+    if(!name){
+      el.errName.textContent = "Name is required.";
+      el.inputName.classList.add("error");
+      hasError = true;
+    }
+    if(!studentNumber){
+      el.errNumber.textContent = "Student number is required.";
+      el.inputNumber.classList.add("error");
+      hasError = true;
+    } else if(findDuplicate(studentNumber, null)){
+      el.errNumber.textContent = "This student number is already registered.";
+      el.inputNumber.classList.add("error");
+      hasError = true;
+    }
+
+    if(hasError) return false;
+
+    state.attendees.push({
+      id: makeId(),
+      name: name,
+      studentNumber: studentNumber,
+      present: false,
+      checkedInAt: null
+    });
+
+    saveState();
+    render();
+    showToast("Added " + name + " to the register.", "success");
+    return true;
+  }
+
+  function toggleAttendance(id){
+    var a = state.attendees.find(function(x){ return x.id === id; });
+    if(!a) return;
+    a.present = !a.present;
+    a.checkedInAt = a.present ? new Date().toISOString() : null;
+    saveState();
+    render();
+    showToast(a.present ? a.name + " checked in." : a.name + " marked as not checked in.", "success");
+  }
+
+  function deleteAttendee(id){
+    var a = state.attendees.find(function(x){ return x.id === id; });
+    if(!a) return;
+    if(!confirm("Remove " + a.name + " from the register? This cannot be undone.")) return;
+    state.attendees = state.attendees.filter(function(x){ return x.id !== id; });
+    saveState();
+    render();
+    showToast("Removed " + a.name + " from the register.", "success");
+  }
+
+  function saveEdit(id, newName, newNumber){
+    newName = newName.trim();
+    newNumber = newNumber.trim();
+
+    if(!newName || !newNumber){
+      showToast("Name and student number cannot be empty.", "error");
+      return false;
+    }
+    var dup = findDuplicate(newNumber, id);
+    if(dup){
+      showToast("Another attendee already uses that student number.", "error");
+      return false;
+    }
+    var a = state.attendees.find(function(x){ return x.id === id; });
+    if(!a) return false;
+    a.name = newName;
+    a.studentNumber = newNumber;
+    saveState();
+    render();
+    showToast("Updated attendee record.", "success");
+    return true;
+  }
+
+  var resetModalState = "idle";
+
+  function openResetModal(){
+    if(state.attendees.length === 0){
+      showToast("There is nothing to reset.", "error");
+      return;
+    }
+    showResetConfirmStep();
+    el.resetModal.hidden = false;
+    requestAnimationFrame(function(){ el.resetModal.classList.add("open"); });
+    document.addEventListener("keydown", onResetModalKeydown);
+  }
+
+  function closeResetModal(){
+    if(resetModalState === "loading") return;
+    el.resetModal.classList.remove("open");
+    document.removeEventListener("keydown", onResetModalKeydown);
+    setTimeout(function(){ el.resetModal.hidden = true; }, 180);
+  }
+
+  function onResetModalKeydown(e){
+    if(e.key === "Escape") closeResetModal();
+  }
+
+  function showResetConfirmStep(){
+    resetModalState = "confirm";
+    var count = state.attendees.length;
+    el.resetModalBox.innerHTML =
+      '<div class="modal-icon warn">!</div>' +
+      '<h3 id="reset-modal-title">Reset all data?</h3>' +
+      '<p class="modal-text">This will permanently delete all ' + count + ' attendee record' + (count === 1 ? "" : "s") + ' stored in this browser. This cannot be undone.</p>' +
+      '<div class="modal-actions">' +
+        '<button type="button" class="btn-ghost" id="reset-cancel-btn">Cancel</button>' +
+        '<button type="button" class="btn-danger" id="reset-confirm-btn">Reset all data</button>' +
+      '</div>';
+    document.getElementById("reset-cancel-btn").addEventListener("click", closeResetModal);
+    document.getElementById("reset-confirm-btn").addEventListener("click", performReset);
+  }
+
+  function showResetLoadingStep(){
+    resetModalState = "loading";
+    el.resetModalBox.innerHTML =
+      '<div class="spinner"></div>' +
+      '<h3 id="reset-modal-title">Resetting data…</h3>' +
+      '<p class="modal-text">Clearing attendance records from this browser.</p>';
+  }
+
+  function showResetSuccessStep(count){
+    resetModalState = "success";
+    el.resetModalBox.innerHTML =
+      '<div class="modal-icon success">' +
+        '<svg width="22" height="22" viewBox="0 0 24 24" fill="none">' +
+          '<path class="check-draw" d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>' +
+      '</div>' +
+      '<h3 id="reset-modal-title">Data reset</h3>' +
+      '<p class="modal-text">' + count + ' attendee record' + (count === 1 ? "" : "s") + ' removed. The register is now empty.</p>' +
+      '<div class="modal-actions">' +
+        '<button type="button" class="btn-primary" id="reset-done-btn">Done</button>' +
+      '</div>';
+    document.getElementById("reset-done-btn").addEventListener("click", closeResetModal);
+  }
+
+  function performReset(){
+    var count = state.attendees.length;
+    showResetLoadingStep();
+    setTimeout(function(){
+      state.attendees = [];
+      saveState();
+      render();
+      showResetSuccessStep(count);
+    }, 700);
+  }
+
+  el.resetModal.addEventListener("click", function(e){
+    if(e.target === el.resetModal) closeResetModal();
+  });
+
+  function getVisibleAttendees(){
+    var term = state.search.trim().toLowerCase();
+    return state.attendees.filter(function(a){
+      if(state.filter === "present" && !a.present) return false;
+      if(state.filter === "absent" && a.present) return false;
+      if(!term) return true;
+      return a.name.toLowerCase().indexOf(term) !== -1 ||
+             a.studentNumber.toLowerCase().indexOf(term) !== -1;
+    });
+  }
+
+  function formatTime(iso){
+    if(!iso) return "—";
+    var d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month:"short", day:"numeric" }) +
+           " · " +
+           d.toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit" });
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderStats(){
+    var total = state.attendees.length;
+    var present = state.attendees.filter(function(a){ return a.present; }).length;
+    var absent = total - present;
+    var pct = total === 0 ? 0 : Math.round((present / total) * 100);
+
+    el.statRegistered.textContent = total;
+    el.statPresent.textContent = present;
+    el.statAbsent.textContent = absent;
+    el.ringPct.textContent = pct + "%";
+
+    var offset = RING_CIRCUMFERENCE - (pct / 100) * RING_CIRCUMFERENCE;
+    el.ringFill.style.strokeDasharray = RING_CIRCUMFERENCE.toFixed(2);
+    el.ringFill.style.strokeDashoffset = offset.toFixed(2);
+  }
+
+  function renderTable(){
+    var visible = getVisibleAttendees();
+    el.tbody.innerHTML = "";
+
+    var total = state.attendees.length;
+    if(total === 0){
+      el.resultsCount.textContent = "";
+    } else {
+      el.resultsCount.textContent = visible.length + " of " + total + " shown";
+    }
+
+    if(visible.length === 0){
+      el.empty.style.display = "block";
+      return;
+    }
+    el.empty.style.display = "none";
+
+    visible.forEach(function(a){
+      var tr = document.createElement("tr");
+      tr.dataset.id = a.id;
+
+      tr.innerHTML =
+        '<td class="who">' +
+          '<div class="name" data-role="name-display">' + escapeHtml(a.name) + '</div>' +
+          '<div class="num" data-role="num-display">' + escapeHtml(a.studentNumber) + '</div>' +
+        '</td>' +
+        '<td>' +
+          '<span class="status-pill ' + (a.present ? "present" : "absent") + '">' +
+            '<span class="dot"></span>' + (a.present ? "Present" : "Not checked in") +
+          '</span>' +
+        '</td>' +
+        '<td class="time-cell">' + formatTime(a.checkedInAt) + '</td>' +
+        '<td>' +
+          '<div class="row-actions">' +
+            '<button type="button" class="toggle-btn ' + (a.present ? "to-absent" : "to-present") + '" data-action="toggle">' +
+              (a.present ? "Check out" : "Check in") +
+            '</button>' +
+            '<button type="button" class="icon-btn" data-action="edit" title="Edit">✎</button>' +
+            '<button type="button" class="icon-btn danger" data-action="delete" title="Remove">✕</button>' +
+          '</div>' +
+        '</td>';
+
+      el.tbody.appendChild(tr);
+    });
+  }
+
+  function render(){
+    renderStats();
+    renderTable();
+  }
+
+  function enterEditMode(tr, attendee){
+    var whoCell = tr.querySelector('td.who');
+    whoCell.innerHTML =
+      '<input type="text" class="edit-input" data-role="edit-name" value="' + escapeHtml(attendee.name) + '" style="margin-bottom:6px;">' +
+      '<input type="text" class="edit-input" data-role="edit-number" value="' + escapeHtml(attendee.studentNumber) + '">';
+
+    var actionsCell = tr.querySelector('td:last-child .row-actions');
+    actionsCell.innerHTML =
+      '<button type="button" class="btn-primary" style="padding:7px 12px;font-size:12.5px;" data-action="save-edit">Save</button>' +
+      '<button type="button" class="btn-ghost" style="padding:7px 12px;font-size:12.5px;" data-action="cancel-edit">Cancel</button>';
+  }
+
+  el.form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var ok = addAttendee(el.inputName.value, el.inputNumber.value);
+    if(ok){
+      el.form.reset();
+      el.inputName.focus();
+    }
+  });
+
+  el.search.addEventListener("input", function(){
+    state.search = el.search.value;
+    renderTable();
+  });
+
+  el.filter.addEventListener("change", function(){
+    state.filter = el.filter.value;
+    renderTable();
+  });
+
+  el.exportBtn.addEventListener("click", function(){
+    if(state.attendees.length === 0){
+      showToast("No attendees to export yet.", "error");
+      return;
+    }
+    var rows = [["Name","Student Number","Status","Checked In At"]];
+    state.attendees.forEach(function(a){
+      rows.push([a.name, a.studentNumber, a.present ? "Present" : "Not checked in", a.checkedInAt || ""]);
+    });
+    var csv = rows.map(function(r){
+      return r.map(function(cell){
+        var s = String(cell).replace(/"/g, '""');
+        return '"' + s + '"';
+      }).join(",");
+    }).join("\n");
+
+    var blob = new Blob([csv], { type: "text/csv" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "attendance_register.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast("Exported attendance register as CSV.", "success");
+  });
+
+  el.resetBtn.addEventListener("click", openResetModal);
+
+  el.tbody.addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-action]");
+    if(!btn) return;
+    var tr = e.target.closest("tr");
+    var id = tr.dataset.id;
+    var action = btn.dataset.action;
+    var attendee = state.attendees.find(function(x){ return x.id === id; });
+    if(!attendee) return;
+
+    if(action === "toggle"){
+      toggleAttendance(id);
+    } else if(action === "delete"){
+      deleteAttendee(id);
+    } else if(action === "edit"){
+      enterEditMode(tr, attendee);
+    } else if(action === "cancel-edit"){
+      renderTable();
+    } else if(action === "save-edit"){
+      var nameInput = tr.querySelector('[data-role="edit-name"]');
+      var numberInput = tr.querySelector('[data-role="edit-number"]');
+      saveEdit(id, nameInput.value, numberInput.value);
+    }
+  });
+
+  loadTheme();
+  loadState();
+  render();
+
+})();
+</script>
+</body>
+</html>
