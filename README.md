@@ -42,7 +42,7 @@ Vanilla HTML, CSS, and JavaScript only. No React, Vue, Angular, jQuery, or CSS f
 
 ## Live demo
 
-_Add your deployed link here once published (e.g. via GitHub Pages)._
+https://joseph17-mancity.github.io/GUILD-SA-Buildathon-01-Qualification-Challenge/
 
 ## About this build
 
